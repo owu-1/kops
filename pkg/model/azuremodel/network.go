@@ -269,21 +269,21 @@ func (b *NetworkModelBuilder) Build(c *fi.CloudupModelBuilderContext) error {
 	})
 	c.AddTask(nsgTask)
 
-	ngwPipTask := &azuretasks.PublicIPAddress{
-		Name:          fi.PtrTo(b.NameForVirtualNetwork()),
-		Lifecycle:     b.Lifecycle,
-		ResourceGroup: b.LinkToResourceGroup(),
-		Tags:          map[string]*string{},
-	}
-	c.AddTask(ngwPipTask)
-	ngwTask := &azuretasks.NatGateway{
-		Name:              fi.PtrTo(b.NameForVirtualNetwork()),
-		Lifecycle:         b.Lifecycle,
-		PublicIPAddresses: []*azuretasks.PublicIPAddress{ngwPipTask},
-		ResourceGroup:     b.LinkToResourceGroup(),
-		Tags:              map[string]*string{},
-	}
-	c.AddTask(ngwTask)
+	// ngwPipTask := &azuretasks.PublicIPAddress{
+	// 	Name:          fi.PtrTo(b.NameForVirtualNetwork()),
+	// 	Lifecycle:     b.Lifecycle,
+	// 	ResourceGroup: b.LinkToResourceGroup(),
+	// 	Tags:          map[string]*string{},
+	// }
+	// c.AddTask(ngwPipTask)
+	// ngwTask := &azuretasks.NatGateway{
+	// 	Name:              fi.PtrTo(b.NameForVirtualNetwork()),
+	// 	Lifecycle:         b.Lifecycle,
+	// 	PublicIPAddresses: []*azuretasks.PublicIPAddress{ngwPipTask},
+	// 	ResourceGroup:     b.LinkToResourceGroup(),
+	// 	Tags:              map[string]*string{},
+	// }
+	// c.AddTask(ngwTask)
 
 	for _, subnetSpec := range b.Cluster.Spec.Networking.Subnets {
 		subnetTask := &azuretasks.Subnet{
@@ -291,7 +291,7 @@ func (b *NetworkModelBuilder) Build(c *fi.CloudupModelBuilderContext) error {
 			Lifecycle:            b.Lifecycle,
 			ResourceGroup:        b.LinkToResourceGroup(),
 			VirtualNetwork:       b.LinkToVirtualNetwork(),
-			NatGateway:           ngwTask,
+			NatGateway:           nil,
 			NetworkSecurityGroup: nsgTask,
 			CIDR:                 fi.PtrTo(subnetSpec.CIDR),
 			Shared:               fi.PtrTo(b.Cluster.SharedVPC()),

@@ -203,30 +203,33 @@ func getStorageProfile(spec *kops.InstanceGroupSpec) (*compute.VirtualMachineSca
 		}
 	}
 
-	var storageAccountType compute.StorageAccountTypes
-	if spec.RootVolume != nil && spec.RootVolume.Type != nil {
-		storageAccountType = compute.StorageAccountTypes(*spec.RootVolume.Type)
-	} else {
-		storageAccountType = compute.StorageAccountTypesStandardSSDLRS
-	}
-
 	imageReference, err := parseImage(spec.Image)
 	if err != nil {
 		return nil, err
 	}
 
-	return &compute.VirtualMachineScaleSetStorageProfile{
-		ImageReference: imageReference,
-		OSDisk: &compute.VirtualMachineScaleSetOSDisk{
-			OSType:       to.Ptr(compute.OperatingSystemTypesLinux),
-			CreateOption: to.Ptr(compute.DiskCreateOptionTypesFromImage),
-			DiskSizeGB:   to.Ptr(volumeSize),
-			ManagedDisk: &compute.VirtualMachineScaleSetManagedDiskParameters{
-				StorageAccountType: &storageAccountType,
-			},
-			Caching: to.Ptr(compute.CachingTypesReadWrite),
-		},
-	}, nil
+	// Hack
+	if spec.RootVolume != nil && spec.RootVolume.Type != nil {
+		if *spec.RootVolume.Type == "EphemeralOnOSCache" {
+			return &compute.VirtualMachineScaleSetStorageProfile{
+				DiskControllerType: fi.PtrTo(string(compute.SCSI)),
+				ImageReference:     imageReference,
+				OsDisk: &compute.VirtualMachineScaleSetOSDisk{
+					OsType:       compute.OperatingSystemTypes(compute.Linux),
+					CreateOption: compute.DiskCreateOptionTypesFromImage,
+					DiffDiskSettings: &compute.DiffDiskSettings{
+						Option: compute.DiffDiskOptions("Local"),
+						Placement: compute.DiffDiskPlacement("CacheDisk"),
+					},
+					DiskSizeGB:   to.Int32Ptr(volumeSize),
+					// With terraform, Host Caching must be read only when using Ephemeral Disk
+					Caching: compute.CachingTypes(compute.HostCachingReadOnly),
+				},
+			}, nil
+		}
+	}
+
+	return nil, fmt.Errorf("Root Volume type of %s does not exist", spec.RootVolume.Type)
 }
 
 func parseImage(image string) (*compute.ImageReference, error) {

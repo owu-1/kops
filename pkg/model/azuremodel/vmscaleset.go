@@ -212,18 +212,17 @@ func getStorageProfile(spec *kops.InstanceGroupSpec) (*compute.VirtualMachineSca
 	if spec.RootVolume != nil && spec.RootVolume.Type != nil {
 		if *spec.RootVolume.Type == "EphemeralOnOSCache" {
 			return &compute.VirtualMachineScaleSetStorageProfile{
-				DiskControllerType: fi.PtrTo(string(compute.SCSI)),
 				ImageReference:     imageReference,
-				OsDisk: &compute.VirtualMachineScaleSetOSDisk{
-					OsType:       compute.OperatingSystemTypes(compute.Linux),
-					CreateOption: compute.DiskCreateOptionTypesFromImage,
+				OSDisk: &compute.VirtualMachineScaleSetOSDisk{
+					OSType:       to.Ptr(compute.OperatingSystemTypesLinux),
+					CreateOption: to.Ptr(compute.DiskCreateOptionTypesFromImage),
+					DiskSizeGB:   to.Ptr(volumeSize),
 					DiffDiskSettings: &compute.DiffDiskSettings{
-						Option: compute.DiffDiskOptions("Local"),
-						Placement: compute.DiffDiskPlacement("CacheDisk"),
+						Option: to.Ptr(compute.DiffDiskOptionsLocal),
+						Placement: to.Ptr(compute.DiffDiskPlacementCacheDisk),
 					},
-					DiskSizeGB:   to.Int32Ptr(volumeSize),
-					// With terraform, Host Caching must be read only when using Ephemeral Disk
-					Caching: compute.CachingTypes(compute.HostCachingReadOnly),
+					// With terraform, caching must be read only when using Ephemeral Disk
+					Caching: to.Ptr(compute.CachingTypesReadOnly),
 				},
 			}, nil
 		}

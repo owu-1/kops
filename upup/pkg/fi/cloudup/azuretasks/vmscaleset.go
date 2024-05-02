@@ -360,7 +360,7 @@ func (s *VMScaleSet) RenderAzure(t *azure.AzureAPITarget, a, e, changes *VMScale
 						networkConfig,
 					},
 				},
-				Priority: compute.VirtualMachinePriorityTypes("Spot"),  // Hack
+				Priority: to.Ptr(compute.VirtualMachinePriorityTypesSpot),  // Hack
 			},
 		},
 		// Assign a system-assigned managed identity so that

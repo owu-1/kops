@@ -850,6 +850,7 @@ metadata:
   name: cilium
 spec:
   controller: cilium.io/ingress-controller
+{{ if or (eq .Ingress.DefaultLoadBalancerMode "shared") (not .Ingress.DefaultLoadBalancerMode) }}
 ---
 # Source: cilium/templates/cilium-ingress-service.yaml
 apiVersion: v1
@@ -882,6 +883,7 @@ subsets:
   - ip: "192.192.192.192"
   ports:
   - port: 9999
+{{ end }}
 {{ end }}
 {{ if WithDefaultBool .Hubble.Enabled false }}
 ---

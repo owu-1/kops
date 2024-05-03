@@ -338,6 +338,7 @@ func (s *VMScaleSet) RenderAzure(t *azure.AzureAPITarget, a, e, changes *VMScale
 					Properties: ipConfigProperties,
 				},
 			},
+			EnableAcceleratedNetworking: to.Ptr(true),  // Hack
 		},
 	}
 
